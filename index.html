@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackJack Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="game-container">
+        <h1 class="game-title">♠️♥️ BlackJack Game ♦️♣️</h1>
+
+        <div class="balance-section">
+            <p class="balance-text">Saldo: <span id="bankroll-display" class="font-bold text-green-400">$1000</span></p>
+            <div class="bet-controls">
+                <input type="number" id="bet-input" class="bet-input" value="10" min="1" step="10">
+                <button id="place-bet-button" class="game-button place-bet-button">Fazer Aposta</button>
+            </div>
+        </div>
+
+        <div class="hand-section dealer-section">
+            <h2 class="player-name">Dealer: <span id="dealer-score">0</span></h2>
+            <div id="dealer-cards" class="cards-container">
+            </div>
+        </div>
+
+        <div class="hand-section player-section">
+            <h2 class="player-name">Você: <span id="player-score">0</span></h2>
+            <div id="player-cards" class="cards-container">
+            </div>
+        </div>
+
+        <p id="game-message" class="game-message"></p>
+
+        <div class="controls-container">
+            <button id="hit-button" class="game-button hit-button">Pedir Carta</button>
+            <button id="stand-button" class="game-button stand-button">Parar</button>
+            <button id="new-game-button" class="game-button new-game-button hidden">Novo Jogo</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
