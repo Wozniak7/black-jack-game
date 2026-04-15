@@ -4,42 +4,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlackJack Game</title>
+    <title>BlackJack Premium</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="game-container">
-        <h1 class="game-title">♠️♥️ BlackJack Game ♦️♣️</h1>
+    <!-- Partículas no Fundo (Background) -->
+    <div id="particles-bg"></div>
 
-        <div class="balance-section">
-            <p class="balance-text">Saldo: <span id="bankroll-display" class="font-bold text-green-400">$1000</span></p>
-            <div class="bet-controls">
-                <input type="number" id="bet-input" class="bet-input" value="10" min="1" step="10">
-                <button id="place-bet-button" class="game-button place-bet-button">Fazer Aposta</button>
+    <!-- Container de Notificações / Toasts -->
+    <div id="toast-container"></div>
+
+    <!-- Tela Principal: Lobby -->
+    <div id="lobby-screen" class="screen active">
+        <div class="lobby-content glass-panel">
+            <h1 class="logo glow-text">♠️ BLACKJACK ♥️</h1>
+            <p class="subtitle">Bem-vindo ao Cassino. Escolha sua mesa agradável.</p>
+
+            <div class="modes-grid">
+                <button class="mode-card mode-classic" data-mode="classic">
+                    <i class="fa-solid fa-dice-d20"></i>
+                    <h2>Clássico</h2>
+                    <p>O jogo padrão com visual renovado e ritmo tranquilo.</p>
+                </button>
+
+                <button class="mode-card mode-vip" data-mode="vip">
+                    <i class="fa-solid fa-crown"></i>
+                    <h2>High Roller</h2>
+                    <p>Mesa VIP. Apostas altas, prêmios grandiosos. (Aposta Mín. $500)</p>
+                </button>
+
+                <button class="mode-card mode-speed" data-mode="speed">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h2>Speed Jack</h2>
+                    <p>Cartas rasgando a mesa. Animações rápidas para veteranos.</p>
+                </button>
+            </div>
+            
+            <div class="lobby-bankroll">
+                <p>Seu Saldo Total: <span id="lobby-bankroll-display" class="money-text">$1000</span></p>
+                <button id="reset-bankroll-btn" class="btn btn-danger btn-sm"><i class="fa-solid fa-rotate-right"></i> Resetar Saldo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Jogo -->
+    <div id="game-screen" class="screen">
+        <!-- Overlay HUD - Saldo e Retorno -->
+        <div class="top-hud">
+            <button id="return-lobby-btn" class="btn btn-ghost"><i class="fa-solid fa-chevron-left"></i> Voltar ao Lobby</button>
+            <div class="balance-badge glass-panel">
+                <i class="fa-solid fa-wallet"></i> <span id="game-bankroll-display" class="money-text">$1000</span>
             </div>
         </div>
 
-        <div class="hand-section dealer-section">
-            <h2 class="player-name">Dealer: <span id="dealer-score">0</span></h2>
-            <div id="dealer-cards" class="cards-container">
+        <div class="blackjack-table">
+            <!-- Área do Dealer -->
+            <div class="hand-section dealer-section">
+                <div class="score-badge glass-panel">Dealer <span id="dealer-score">0</span></div>
+                <div id="dealer-cards" class="cards-container"></div>
             </div>
-        </div>
 
-        <div class="hand-section player-section">
-            <h2 class="player-name">Você: <span id="player-score">0</span></h2>
-            <div id="player-cards" class="cards-container">
+            <!-- Área Central / Apostas -->
+            <div id="betting-area" class="betting-area glass-panel">
+                <h3>Faça sua Aposta</h3>
+                <div class="chips-container">
+                    <button class="chip-btn" data-val="10">$10</button>
+                    <button class="chip-btn" data-val="50">$50</button>
+                    <button class="chip-btn" data-val="100">$100</button>
+                    <button class="chip-btn" data-val="500">$500</button>
+                </div>
+                <div class="bet-controls">
+                    <input type="number" id="bet-input" class="bet-input outline" value="10" min="10">
+                    <button id="place-bet-button" class="btn btn-primary pulse-hover"><i class="fa-solid fa-coins"></i> Apostar</button>
+                </div>
             </div>
-        </div>
 
-        <p id="game-message" class="game-message"></p>
+            <!-- Área do Jogador -->
+            <!-- Criado como container unificado pensando na mecânica de Split (duas mãos) -->
+            <div id="player-hands-wrapper" class="player-hands-wrapper">
+                <div class="hand-section player-section" id="player-hand-1">
+                    <div class="score-badge glass-panel">Você <span id="player-score" class="hand-score">0</span></div>
+                    <div id="player-cards" class="cards-container"></div>
+                    <div id="bet-display" class="current-bet-display hidden"><i class="fa-solid fa-coins"></i> $<span id="current-bet-amount">0</span></div>
+                </div>
+            </div>
 
-        <div class="controls-container">
-            <button id="hit-button" class="game-button hit-button">Pedir Carta</button>
-            <button id="stand-button" class="game-button stand-button">Parar</button>
-            <button id="new-game-button" class="game-button new-game-button hidden">Novo Jogo</button>
+            <!-- Controles do Jogo (Aparecem só depois de apostar) -->
+            <div class="action-controls-container hidden" id="action-controls">
+                <button id="hit-button" class="btn action-btn bg-hit"><i class="fa-solid fa-hand-pointer"></i> Pedir (Hit)</button>
+                <button id="stand-button" class="btn action-btn bg-stand"><i class="fa-solid fa-hand-paper"></i> Parar (Stand)</button>
+                <button id="double-button" class="btn action-btn bg-double"><i class="fa-solid fa-angle-double-up"></i> Dobrar (Double)</button>
+                <button id="split-button" class="btn action-btn bg-split"><i class="fa-solid fa-arrows-split-up-and-left"></i> Dividir (Split)</button>
+            </div>
+            
+            <div id="post-game-controls" class="post-game-controls hidden">
+                <button id="new-round-button" class="btn btn-primary lg-btn">Nova Rodada</button>
+            </div>
         </div>
     </div>
 
