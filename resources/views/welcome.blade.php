@@ -35,9 +35,45 @@
         </div>
     </div>
 
+    <!-- Tela de Perfil Separada -->
+    <div id="profile-screen" class="screen">
+        <div class="top-hud">
+            <button id="btn-close-profile" class="btn btn-ghost"><i class="fa-solid fa-chevron-left"></i> Voltar ao Cassino</button>
+        </div>
+        <div class="lobby-content glass-panel" style="max-width: 500px; padding: 40px;">
+            <h1 class="logo glow-text"><i class="fa-solid fa-user-circle"></i> Conta</h1>
+            <p class="subtitle">Estatísticas da conta e Preferências</p>
+            
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0; color: var(--gold); font-size: 1.2rem;">🏆 Fichas Totais: <strong id="profile-chips-display">0</strong></p>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:15px; text-align:left;">
+                <label style="color:var(--text-secondary); font-size:0.9rem;">Editar Nome de Usuário</label>
+                <input type="text" id="profile-username" class="bet-input outline" style="width:100%" placeholder="Novo Nome">
+                
+                <label style="color:var(--text-secondary); font-size:0.9rem;">Editar Senha (Deixe vazio para manter)</label>
+                <input type="password" id="profile-password" class="bet-input outline" style="width:100%" placeholder="Nova Senha">
+                
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button id="btn-save-profile" class="btn btn-primary pulse-hover" style="flex:2">Salvar Configurações</button>
+                    <button id="btn-logout" class="btn btn-danger" style="flex:1"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tela Principal: Lobby -->
     <div id="lobby-screen" class="screen">
-        <div class="lobby-content glass-panel">
+        <!-- User Top Bar -->
+        <div class="top-hud">
+            <div class="balance-badge glass-panel" style="font-size:1rem;">
+                👤 <span id="lobby-username-display">Visitante</span>
+            </div>
+            <button id="btn-open-profile" class="btn btn-ghost"><i class="fa-solid fa-user-gear"></i> Meu Perfil</button>
+        </div>
+
+        <div class="lobby-content glass-panel" style="margin-top: 40px;">
             <h1 class="logo glow-text">♠️ BLACKJACK ♥️</h1>
             <p class="subtitle">Bem-vindo ao Cassino. Escolha sua mesa agradável.</p>
 
@@ -58,6 +94,12 @@
                     <i class="fa-solid fa-bolt"></i>
                     <h2>Speed Jack</h2>
                     <p>Cartas rasgando a mesa. Animações rápidas para veteranos.</p>
+                </button>
+                
+                <button class="mode-card mode-joker" data-mode="joker">
+                    <i class="fa-solid fa-hat-wizard" style="color:#d946ef;"></i>
+                    <h2 style="color:#d946ef;">Joker's Poker</h2>
+                    <p>Modo Balatro. Construa mãos de poker para bater a meta. Custa $100 Fichas.</p>
                 </button>
             </div>
             
@@ -120,6 +162,63 @@
             
             <div id="post-game-controls" class="post-game-controls hidden">
                 <button id="new-round-button" class="btn btn-primary lg-btn">Nova Rodada</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Joker's Poker (Balatro Style) -->
+    <div id="balatro-screen" class="screen" style="background:radial-gradient(circle at center, #4a044e 0%, #1e1b4b 100%);">
+        <div class="top-hud">
+            <button id="balatro-return-btn" class="btn btn-ghost"><i class="fa-solid fa-chevron-left"></i> Desistir</button>
+            <div class="balance-badge glass-panel" style="border-color:#d946ef">
+                <i class="fa-solid fa-hat-wizard"></i> <span id="balatro-joker-name">Nenhum Coringa</span>
+            </div>
+        </div>
+
+        <div class="balatro-layout">
+            <!-- HUD Esquerdo: Stats -->
+            <div class="balatro-sidebar glass-panel">
+                <h3 style="margin-top:0; color:#e9d5ff">Pontuação Alvo</h3>
+                <div class="money-text" style="font-size:2rem; color:#f0abfc" id="balatro-target">1000</div>
+                <hr style="border-color:rgba(255,255,255,0.1)">
+                <h3 style="color:#e9d5ff">Sua Pontuação</h3>
+                <div class="money-text" style="font-size:1.5rem; color:#fbbf24" id="balatro-score">0</div>
+                
+                <div style="margin-top:20px; display:flex; justify-content:space-between; color:#cbd5e1">
+                    <span>Mãos (Hands):</span> <strong id="balatro-hands-left" style="color:#38bdf8">4</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; color:#cbd5e1">
+                    <span>Descartes:</span> <strong id="balatro-discards-left" style="color:#f87171">3</strong>
+                </div>
+
+                <div id="balatro-hand-info" style="margin-top:20px; text-align:center; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px">
+                    <div id="balatro-hand-name" style="color:#2dd4bf; font-weight:bold; font-size:1.2rem;">High Card</div>
+                    <div style="color:#e2e8f0; font-size:1rem; margin-top:5px;">
+                        <span id="balatro-chips-base" style="color:#38bdf8">10</span> <i class="fa-solid fa-xmark" style="font-size:0.8rem"></i> <span id="balatro-mult-base" style="color:#f87171">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Area Principal do Jogo -->
+            <div class="balatro-main">
+                <!-- Played area fake just for layout alignment, or empty space -->
+                <div class="balatro-event-area">
+                    <h2 id="balatro-event-text" class="glow-text" style="color:#fcd34d; display:none; animation: pulseGlow 1s infinite">FLUSH! + 35 X 4</h2>
+                </div>
+
+                <!-- Deck/Hand Area -->
+                <div class="glass-panel" style="width:100%; padding:20px; min-height: 180px; position:relative;" id="balatro-play-area">
+                    <h3 style="margin:0 0 10px 0; color:#94a3b8; font-weight:400">Sua Mão (Selecione até 5 cartas)</h3>
+                    <div id="balatro-cards" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; perspective: 1000px;">
+                        <!-- Cartas geradas via JS -->
+                    </div>
+                </div>
+
+                <!-- Controles -->
+                <div style="display:flex; gap:15px">
+                    <button id="balatro-play-btn" class="btn btn-primary lg-btn pulse-hover"><i class="fa-solid fa-play"></i> Jogar Mão</button>
+                    <button id="balatro-discard-btn" class="btn btn-danger lg-btn"><i class="fa-solid fa-trash"></i> Descartar</button>
+                </div>
             </div>
         </div>
     </div>

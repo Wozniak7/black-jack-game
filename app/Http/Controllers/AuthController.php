@@ -75,4 +75,46 @@ class AuthController extends Controller
         }
         return response()->json(['user' => null]);
     }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['status' => 'success']);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        if(!$user) {
+            return response()->json(['error' => 'Não autenticado'], 401);
+        }
+
+        $rules = [];
+        // Only validate if they are sending a new name
+        if($request->name && $request->name !== $user->name) {
+            $rules['name'] = 'required|string|unique:users,name';
+        }
+        if($request->password) {
+            $rules['password'] = 'required|string|min:4';
+        }
+
+        $request->validate($rules);
+
+        if($request->name) {
+            $user->name = $request->name;
+            // email is just a mock based on name
+            $user->email = $request->name . '@example.com';
+        }
+        
+        if($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return response()->json(['status' => 'success', 'user' => $user]);
+    }
 }

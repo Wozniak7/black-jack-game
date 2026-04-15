@@ -8,7 +8,8 @@
 const screens = {
     auth: document.getElementById('auth-screen'),
     lobby: document.getElementById('lobby-screen'),
-    game: document.getElementById('game-screen')
+    game: document.getElementById('game-screen'),
+    profile: document.getElementById('profile-screen')
 };
 
 const toastContainer = document.getElementById('toast-container');
@@ -31,6 +32,16 @@ const authUser = document.getElementById('auth-username');
 const authPass = document.getElementById('auth-password');
 const btnLogin = document.getElementById('btn-login');
 const btnRegister = document.getElementById('btn-register');
+
+// Profile & HUD
+const lobbyUsernameDisplay = document.getElementById('lobby-username-display');
+const btnOpenProfile = document.getElementById('btn-open-profile');
+const btnCloseProfile = document.getElementById('btn-close-profile');
+const btnSaveProfile = document.getElementById('btn-save-profile');
+const btnLogout = document.getElementById('btn-logout');
+const profileUsername = document.getElementById('profile-username');
+const profilePassword = document.getElementById('profile-password');
+const profileChipsDisplay = document.getElementById('profile-chips-display');
 
 // Buttons
 const btnPlaceBet = document.getElementById('place-bet-button');
@@ -55,6 +66,7 @@ let activeHandIndex = 0;
 let isGameOver = false;
 let dealerRevealed = false;
 
+let loggedUserName = '';
 let playerBankroll = 0; // Starts from 0, populated by server
 
 // Configurações do Modo
@@ -72,14 +84,14 @@ async function init() {
     const resp = await fetch('/api/status');
     const data = await resp.json();
     if(data.user) {
-        playerBankroll = data.user.chips;
-        loginSuccess();
+        loginSuccess(data.user);
     }
 }
 
 function updateBankrollDisplay() {
     lobbyBankroll.textContent = `$${playerBankroll}`;
     gameBankroll.textContent = `$${playerBankroll}`;
+    profileChipsDisplay.textContent = playerBankroll;
 }
 
 async function syncBankrollWithServer() {
@@ -92,11 +104,17 @@ async function syncBankrollWithServer() {
     } catch(e) {}
 }
 
-function loginSuccess() {
+function loginSuccess(user) {
+    playerBankroll = user.chips;
+    loggedUserName = user.name;
+    lobbyUsernameDisplay.textContent = loggedUserName;
+    
     screens.auth.classList.remove('active');
+    screens.profile.classList.remove('active');
     screens.lobby.classList.add('active');
+    
     updateBankrollDisplay();
-    showToast('Logado com sucesso!', 'success');
+    showToast('Pronto para jogar!', 'success');
 }
 
 async function handleAuth(action) {
@@ -115,8 +133,54 @@ async function handleAuth(action) {
         if(!resp.ok) {
             showToast(data.error || 'Erro na autenticação', 'error');
         } else {
-            playerBankroll = data.user.chips;
-            loginSuccess();
+            loginSuccess(data.user);
+            authUser.value = '';
+            authPass.value = '';
+        }
+    } catch(e) {
+        showToast('Erro de rede', 'error');
+    }
+}
+
+async function handleLogout() {
+    await fetch('/api/logout', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': csrfToken }
+    });
+    loggedUserName = '';
+    playerBankroll = 0;
+    screens.profile.classList.remove('active');
+    screens.lobby.classList.remove('active');
+    screens.game.classList.remove('active');
+    screens.auth.classList.add('active');
+    showToast('Sessão encerrada.', 'info');
+}
+
+async function handleProfileUpdate() {
+    const newName = profileUsername.value;
+    const newPass = profilePassword.value;
+    
+    const payload = {};
+    if(newName) payload.name = newName;
+    if(newPass) payload.password = newPass;
+    
+    if(Object.keys(payload).length === 0) return showToast('Sem alterações', 'info');
+
+    try {
+        const resp = await fetch('/api/profile/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        
+        if(!resp.ok) {
+            showToast(data.error || 'Erro na atualização (Nome em uso?)', 'error');
+        } else {
+            loggedUserName = data.user.name;
+            lobbyUsernameDisplay.textContent = loggedUserName;
+            profilePassword.value = ''; // clear password field
+            showToast('Perfil atualizado!', 'success');
         }
     } catch(e) {
         showToast('Erro de rede', 'error');
@@ -146,12 +210,32 @@ function showToast(message, type = 'info') {
 function bindEvents() {
     btnLogin.addEventListener('click', () => handleAuth('login'));
     btnRegister.addEventListener('click', () => handleAuth('register'));
+    btnLogout.addEventListener('click', handleLogout);
+    
+    // Profile
+    btnOpenProfile.addEventListener('click', () => {
+        profileUsername.value = loggedUserName;
+        profilePassword.value = '';
+        screens.lobby.classList.remove('active');
+        screens.profile.classList.add('active');
+    });
+    
+    btnCloseProfile.addEventListener('click', () => {
+        screens.profile.classList.remove('active');
+        screens.lobby.classList.add('active');
+    });
+    
+    btnSaveProfile.addEventListener('click', handleProfileUpdate);
 
     // Lobby
     modeCards.forEach(card => {
         card.addEventListener('click', () => {
             currentMode = card.getAttribute('data-mode');
-            enterGameScreen();
+            if(currentMode === 'joker') {
+                initBalatro();
+            } else {
+                enterGameScreen();
+            }
         });
     });
 

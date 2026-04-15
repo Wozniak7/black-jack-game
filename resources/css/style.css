@@ -35,8 +35,9 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    overflow: hidden; /* Prevenindo scroll indesejado para app-like feel */
+    align-items: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
     transition: background-color 1s ease;
 }
 
@@ -53,13 +54,13 @@ body {
 /* --- Sistema de Telas --- */
 .screen {
     display: none;
-    width: 100vw;
-    height: 100vh;
+    min-height: 100vh;
+    height: auto;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     position: relative;
-    padding: 20px;
+    padding: 80px 20px 20px 20px;
     box-sizing: border-box;
 }
 
@@ -465,12 +466,77 @@ body[data-theme="vip"] .card.hidden-card {
     40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-/* Responsividade Básica */
+/* --- BALATRO LAYOUT --- */
+.balatro-layout {
+    display: flex;
+    width: 100%;
+    max-width: 900px;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+.balatro-sidebar {
+    flex: 1;
+    padding: 20px;
+    text-align: left;
+    border-color: #9333ea;
+}
+.balatro-main {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+}
+.balatro-event-area {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Fix overlaps in Balatro */
+#balatro-cards .card {
+    position: relative;
+    left: auto !important;
+    margin: 5px;
+}
+
+/* Hover missing on joker */
+.mode-joker:hover {
+    border-color: #d946ef;
+    box-shadow: 0 0 20px rgba(217, 70, 239, 0.2);
+}
+
+/* --- Responsividade Global --- */
 @media (max-width: 768px) {
-    .blackjack-table { height: auto; min-height: 85vh; padding-top: 60px;}
+    .top-hud {
+        flex-direction: column;
+        gap: 10px;
+        position: relative;
+        top: 0; left: 0; right: 0;
+        margin-bottom: 20px;
+    }
+
+    .blackjack-table { height: auto; min-height: 85vh; padding-top: 10px;}
     .action-controls-container { flex-direction: row; flex-wrap: wrap; }
     .action-btn { font-size: 0.9rem; padding: 10px; flex-grow: 1; text-align: center; }
     .cards-container { height: 120px; }
-    .card { width: 65px; height: 95px; }
+    
+    .card { width: 55px; height: 85px; }
     .card .suit-center { font-size: 2rem; }
+
+    /* Balatro Mobile */
+    .balatro-layout {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .balatro-sidebar { width: 100%; border: none; border-bottom: 1px solid #9333ea; border-radius: 0; }
+    .balatro-main { width: 100%; }
+    
+    .lobby-content { padding: 20px 10px; }
+    .logo { font-size: 2.5rem; }
+    .money-text { font-size: 1.2rem !important; }
 }

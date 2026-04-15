@@ -20,4 +20,6 @@ Route::get('/', function () {
 Route::post('/api/register', 'AuthController@register');
 Route::post('/api/login', 'AuthController@login');
 Route::post('/api/update-chips', 'AuthController@updateChips');
+Route::post('/api/profile/update', 'AuthController@updateProfile');
+Route::post('/api/logout', 'AuthController@logout');
 Route::get('/api/status', 'AuthController@getStatus');
