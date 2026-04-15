@@ -6,6 +6,7 @@
 
 // --- DOM ELEMENTS ---
 const screens = {
+    auth: document.getElementById('auth-screen'),
     lobby: document.getElementById('lobby-screen'),
     game: document.getElementById('game-screen')
 };
@@ -24,6 +25,12 @@ const dealerScoreSpan = document.getElementById('dealer-score');
 const playerHandsWrapper = document.getElementById('player-hands-wrapper');
 
 const betInput = document.getElementById('bet-input');
+
+// Auth elements
+const authUser = document.getElementById('auth-username');
+const authPass = document.getElementById('auth-password');
+const btnLogin = document.getElementById('btn-login');
+const btnRegister = document.getElementById('btn-register');
 
 // Buttons
 const btnPlaceBet = document.getElementById('place-bet-button');
@@ -48,7 +55,7 @@ let activeHandIndex = 0;
 let isGameOver = false;
 let dealerRevealed = false;
 
-let playerBankroll = parseInt(localStorage.getItem('blackjackBankroll')) || 1000;
+let playerBankroll = 0; // Starts from 0, populated by server
 
 // Configurações do Modo
 let currentMode = 'classic';
@@ -56,17 +63,64 @@ let animSpeedDisplay = 0.5; // Segundos p/ CSS
 let animDelayLogic = 600; // ms para JS timeouts
 let minBetAmount = 10;
 
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 // --- INITIALIZATION ---
-function init() {
-    updateBankrollDisplay();
+async function init() {
     bindEvents();
+    // Check if user is already logged in (Server Side Session check)
+    const resp = await fetch('/api/status');
+    const data = await resp.json();
+    if(data.user) {
+        playerBankroll = data.user.chips;
+        loginSuccess();
+    }
 }
 
 function updateBankrollDisplay() {
-    localStorage.setItem('blackjackBankroll', playerBankroll);
     lobbyBankroll.textContent = `$${playerBankroll}`;
     gameBankroll.textContent = `$${playerBankroll}`;
+}
+
+async function syncBankrollWithServer() {
+    try {
+        await fetch('/api/update-chips', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ chips: playerBankroll })
+        });
+    } catch(e) {}
+}
+
+function loginSuccess() {
+    screens.auth.classList.remove('active');
+    screens.lobby.classList.add('active');
+    updateBankrollDisplay();
+    showToast('Logado com sucesso!', 'success');
+}
+
+async function handleAuth(action) {
+    const name = authUser.value;
+    const password = authPass.value;
+    if(!name || !password) return showToast('Preencha os dados', 'warning');
+
+    try {
+        const resp = await fetch(`/api/${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ name, password })
+        });
+        const data = await resp.json();
+        
+        if(!resp.ok) {
+            showToast(data.error || 'Erro na autenticação', 'error');
+        } else {
+            playerBankroll = data.user.chips;
+            loginSuccess();
+        }
+    } catch(e) {
+        showToast('Erro de rede', 'error');
+    }
 }
 
 // --- TOAST NOTIFICATIONS ---
@@ -90,6 +144,9 @@ function showToast(message, type = 'info') {
 
 // --- EVENT BINDING ---
 function bindEvents() {
+    btnLogin.addEventListener('click', () => handleAuth('login'));
+    btnRegister.addEventListener('click', () => handleAuth('register'));
+
     // Lobby
     modeCards.forEach(card => {
         card.addEventListener('click', () => {
@@ -98,10 +155,11 @@ function bindEvents() {
         });
     });
 
-    btnResetBankroll.addEventListener('click', () => {
+    btnResetBankroll.addEventListener('click', async () => {
         playerBankroll = 1000;
         updateBankrollDisplay();
-        showToast('Saldo resetado para $1000.', 'success');
+        await syncBankrollWithServer();
+        showToast('Saldo resetado para $1000 e salvo.', 'success');
     });
 
     btnReturnLobby.addEventListener('click', () => {
@@ -514,6 +572,7 @@ function concludeRound() {
 
     playerBankroll += totalWon;
     updateUI();
+    syncBankrollWithServer();
 }
 
 function delay(ms) {

@@ -5,9 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlackJack Premium</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>
@@ -16,9 +17,26 @@
 
     <!-- Container de Notificações / Toasts -->
     <div id="toast-container"></div>
+    
+    <!-- Tela de Auth (Login/Registro) -->
+    <div id="auth-screen" class="screen active">
+        <div class="lobby-content glass-panel" style="max-width: 400px; padding: 30px;">
+            <h1 class="logo glow-text">♠️ Cassino ♥️</h1>
+            <p class="subtitle">Identifique-se para entrar.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:15px">
+                <input type="text" id="auth-username" class="bet-input outline" style="width:100%" placeholder="Nome de Úsuario">
+                <input type="password" id="auth-password" class="bet-input outline" style="width:100%" placeholder="Senha">
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button id="btn-login" class="btn btn-primary pulse-hover" style="flex:1">Entrar</button>
+                    <button id="btn-register" class="btn btn-ghost" style="flex:1">Registrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Tela Principal: Lobby -->
-    <div id="lobby-screen" class="screen active">
+    <div id="lobby-screen" class="screen">
         <div class="lobby-content glass-panel">
             <h1 class="logo glow-text">♠️ BLACKJACK ♥️</h1>
             <p class="subtitle">Bem-vindo ao Cassino. Escolha sua mesa agradável.</p>
@@ -106,7 +124,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="{{ asset('js/script.js') }}"></script>
 </body>
 
 </html>
