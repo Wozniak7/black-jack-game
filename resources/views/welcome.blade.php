@@ -167,7 +167,7 @@
     </div>
 
     <!-- Tela do Joker's Poker (Balatro Style) -->
-    <div id="balatro-screen" class="screen" style="background:radial-gradient(circle at center, #4a044e 0%, #1e1b4b 100%);">
+    <div id="balatro-screen" class="screen balatro-moving-bg">
         <div class="top-hud">
             <button id="balatro-return-btn" class="btn btn-ghost"><i class="fa-solid fa-chevron-left"></i> Desistir</button>
             <div class="balance-badge glass-panel" style="border-color:#d946ef">

@@ -77,6 +77,114 @@ let minBetAmount = 10;
 
 const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+/* --- AUDIO MANAGER --- */
+const AudioMan = {
+    ctx: null,
+    isPlayingBGM: false,
+    bgmGain: null,
+    bgmInterval: null,
+    init: function() {
+        if(this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+    },
+    playClick: function() {
+        if(!this.ctx || this.ctx.state !== 'running') return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+    },
+    playHover: function() {
+        if(!this.ctx || this.ctx.state !== 'running') return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.02, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
+    },
+    playBGM: function() {
+        if(!this.ctx || this.isPlayingBGM) return;
+        this.isPlayingBGM = true;
+        
+        let step = 0;
+        const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; // C pentatonic
+        const bassScale = [65.41, 73.42, 82.41, 98.00, 110.00, 130.81]; 
+        
+        this.bgmGain = this.ctx.createGain();
+        this.bgmGain.gain.value = 0.08;
+        this.bgmGain.connect(this.ctx.destination);
+
+        // Ambient Pad
+        const pad1 = this.ctx.createOscillator(); pad1.type = 'sine'; pad1.frequency.value = scale[0];
+        const pad2 = this.ctx.createOscillator(); pad2.type = 'sine'; pad2.frequency.value = scale[2];
+        const pad3 = this.ctx.createOscillator(); pad3.type = 'sine'; pad3.frequency.value = scale[4];
+        [pad1, pad2, pad3].forEach(p => { p.connect(this.bgmGain); p.start(); });
+
+        this.bgmInterval = setInterval(() => {
+            if(this.ctx.state !== 'running') return;
+            const time = this.ctx.currentTime;
+            
+            // Bass note
+            if (step % 2 === 0) {
+               const bass = this.ctx.createOscillator();
+               bass.type = 'triangle';
+               bass.frequency.value = bassScale[Math.floor(Math.random()*bassScale.length)];
+               const bGain = this.ctx.createGain();
+               bGain.gain.setValueAtTime(0.15, time);
+               bGain.gain.exponentialRampToValueAtTime(0.01, time + 0.4);
+               bass.connect(bGain); bGain.connect(this.bgmGain);
+               bass.start(time); bass.stop(time + 0.4);
+            }
+            
+            // Arp note
+            if (Math.random() > 0.3) {
+               const arp = this.ctx.createOscillator();
+               arp.type = 'sine';
+               arp.frequency.value = scale[Math.floor(Math.random()*scale.length)] * 2;
+               const aGain = this.ctx.createGain();
+               aGain.gain.setValueAtTime(0.05, time);
+               aGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+               arp.connect(aGain); aGain.connect(this.bgmGain);
+               arp.start(time); arp.stop(time + 0.2);
+            }
+            
+            // Change Pad chord slowly
+            if (step % 16 === 0) {
+                pad1.frequency.setTargetAtTime(scale[Math.floor(Math.random()*scale.length)], time, 2);
+                pad2.frequency.setTargetAtTime(scale[Math.floor(Math.random()*scale.length)], time, 2);
+            }
+            
+            step++;
+        }, 300);
+    }
+};
+
+document.addEventListener('click', () => {
+    AudioMan.init();
+    if(AudioMan.ctx.state === 'suspended') AudioMan.ctx.resume();
+    AudioMan.playBGM();
+}, { once: true });
+
+document.addEventListener('mouseover', (e) => {
+    if(e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('.mode-card')) {
+        AudioMan.playHover();
+    }
+});
+document.addEventListener('mousedown', (e) => {
+    if(e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('.mode-card')) {
+        AudioMan.playClick();
+    }
+});
+
 // --- INITIALIZATION ---
 async function init() {
     bindEvents();
